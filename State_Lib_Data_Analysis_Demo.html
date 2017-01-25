@@ -1,0 +1,365 @@
+<!Doctype html public "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html >
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
+
+  <!--  [*]  set html page title   -->
+  <title>State Library Statistical Analysis, 2006-07</title>
+
+  <!--  css style sheet -->
+  <style type="text/css">
+      img { border: 0; }
+      .menuimg{
+		height:32px;
+  		width:32px;
+  		position:relative;
+  		top:0px;
+  		border:0px;
+	  }
+	table.title{
+	  font-family: "Georgia";
+	  font-size: 25px;
+	  color: #009999;	
+	}
+	table.pretty {
+	  font-family: "Georgia";
+	  border-collapse: separate;
+	  border-spacing: 0.2em;
+	}
+	table.pretty th, table.pretty td {
+	  font-family: "Georgia";
+	  color:#009999;
+	  background: white;
+	  border: 1px black solid;
+	  padding: 0.2em;	  
+	}
+   </style>
+
+
+  <!--import jQuery -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <!--   import Google visualization  API -->
+  <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+  
+  <!--   customize function -->
+  <script type="text/javascript">
+  	google.load("visualization", "1", {packages:["table","bar","corechart"]});
+
+	// set callback function for drawing visualizations
+	google.setOnLoadCallback(queryData);
+				
+	///////////////////////////////
+	// Initializes the query and service to pull the data
+	///////////////////////////////
+	function queryData() 
+	{        			
+
+		var  sparqlproxy = "http://localhost:3030/myDataset/query";	//local fuseki server providing sparql endpoint
+
+		var querystr = "prefix data353: <http://data-gov.tw.rpi.edu/vocab/p/353/> SELECT ?LibraryName ?BookVol ?TotalStaff ?TotalIncome" +"?TotalExpense WHERE { ?subject 	data353:stlaname ?LibraryName;"
+			 +"data353:bkservol ?BookVol;	data353:totstaff ?TotalStaff;"
+    		 +" data353:totincm ?TotalIncome; 	data353:totexpd ?TotalExpense }";  //sparql query for getting the data from datasets
+		
+		var queryurl = sparqlproxy + "?query=" + encodeURIComponent(querystr);	//URL for sending query in the specified format
+
+        $.ajax({
+        	dataType: "jsonp",
+        	url: queryurl,
+        	success: function(response){
+        		
+        		var results = response.results.bindings;
+        		
+        		//call different functions which will draw different charts for different data
+        		drawBookVolChart(results);			
+        		drawTotalStaffChart(results);
+        		drawTotalIncomeChart(results);
+        		drawTotalExpenseChart(results);
+	
+        	}
+        })
+	}; 
+
+function drawBookVolChart(results)		//Processes total book volume data and sends draw chart command
+{
+	var newdata = new google.visualization.DataTable();
+				
+  				newdata.addColumn('string', 'LibraryName');
+	      		newdata.addColumn('number', 'BookVolume');
+	      		newdata.addColumn({type: 'string', role: 'style'});
+        		
+        		for(i=0,j=0;i<results.length;i++)
+        		{	
+        			var temp = results[i].LibraryName.value;	//temp Library name for filtering out libraries
+        			var tempStaff = parseInt(results[i].TotalStaff.value);	//totalStaff value to find out 2006 value
+        			var bookVol = results[i].BookVol.value; //bookVolume value
+        			
+        			if(((temp == "WASHINGTON STATE LIBRARY")&&(tempStaff == 79)) || ((temp=="OKLAHOMA DEPARTMENT OF LIBRARIES")&&(tempStaff==82)) || ((temp=="STATE LIBRARY OF LOUISIANA")&&(tempStaff==75)) || ((temp=="ARKANSAS STATE LIBRARY")&&(tempStaff==56)) || ((temp=="KANSAS STATE LIBRARY")&&(tempStaff==29)) || ((temp=="UTAH STATE LIBRARY DIVISION")&&(tempStaff==65)) || ((temp=="COMMONWEALTH LIBRARIES")&&(tempStaff==83)) || ((temp=="NEW MEXICO STATE LIBRARY")&&(tempStaff==67)&&(bookVol==554673)) || ((temp=="CALIFORNIA STATE LIBRARY")&&(tempStaff==185)) || ((temp=="NEVADA STATE LIBRARY AND ARCHIVES")&&(tempStaff==40)))
+        			{
+        				var libName = temp;
+        				newdata.addRow([libName, Number(bookVol),'#ff4444']);	//2006 year's values are red
+        			}
+        			else if((temp == "WASHINGTON STATE LIBRARY") || (temp=="OKLAHOMA DEPARTMENT OF LIBRARIES") || (temp=="STATE LIBRARY OF LOUISIANA") || (temp=="ARKANSAS STATE LIBRARY") || (temp=="KANSAS STATE LIBRARY") || (temp=="UTAH STATE LIBRARY DIVISION")|| (temp=="COMMONWEALTH LIBRARIES") || (temp=="NEW MEXICO STATE LIBRARY")|| (temp=="CALIFORNIA STATE LIBRARY") || (temp=="NEVADA STATE LIBRARY AND ARCHIVES"))
+        			{
+        				var libName = temp;
+        				newdata.addRow([libName, Number(bookVol),'#4444ff']);	//2007 year's values are blue
+        			}
+        			
+        		}
+        		var chartName = "BookVolume";
+        		//call draw chart function which draws actual chart with options
+        		drawChart(newdata,chartName);
+} 
+
+function drawTotalStaffChart(results)	//Processes total staff members data and sends draw chart command
+{
+	var newdata = new google.visualization.DataTable();
+				
+  				newdata.addColumn('string', 'LibraryName');
+	      		newdata.addColumn('number', 'TotalStaff');
+	      		newdata.addColumn({type: 'string', role: 'style'});
+        		
+        		for(i=0,j=0;i<results.length;i++)
+        		{	
+        			var temp = results[i].LibraryName.value;	//temp Library name for filtering out libraries
+        			var tempStaff = parseInt(results[i].TotalStaff.value);	//totalStaff value to find out 2006 value
+        			var bookVol = results[i].BookVol.value;
+        			
+        			if(((temp == "WASHINGTON STATE LIBRARY")&&(tempStaff == 79)) || ((temp=="OKLAHOMA DEPARTMENT OF LIBRARIES")&&(tempStaff==82)) || ((temp=="STATE LIBRARY OF LOUISIANA")&&(tempStaff==75)) || ((temp=="ARKANSAS STATE LIBRARY")&&(tempStaff==56)) || ((temp=="KANSAS STATE LIBRARY")&&(tempStaff==29)) || ((temp=="UTAH STATE LIBRARY DIVISION")&&(tempStaff==65)) || ((temp=="COMMONWEALTH LIBRARIES")&&(tempStaff==83)) || ((temp=="NEW MEXICO STATE LIBRARY")&&(tempStaff==67)&&(bookVol==554673)) || ((temp=="CALIFORNIA STATE LIBRARY")&&(tempStaff==185)) || ((temp=="NEVADA STATE LIBRARY AND ARCHIVES")&&(tempStaff==40)))
+        			{
+        				var libName = temp;
+        				var totalStaff = tempStaff;
+        				newdata.addRow([libName, Number(totalStaff),'#ff4444']);	//2006 year's values are red
+        			}
+        			else if((temp == "WASHINGTON STATE LIBRARY") || (temp=="OKLAHOMA DEPARTMENT OF LIBRARIES") || (temp=="STATE LIBRARY OF LOUISIANA") || (temp=="ARKANSAS STATE LIBRARY") || (temp=="KANSAS STATE LIBRARY") || (temp=="UTAH STATE LIBRARY DIVISION")|| (temp=="COMMONWEALTH LIBRARIES") || (temp=="NEW MEXICO STATE LIBRARY")|| (temp=="CALIFORNIA STATE LIBRARY") || (temp=="NEVADA STATE LIBRARY AND ARCHIVES"))
+        			{
+        				var libName = temp;
+        				var totalStaff = tempStaff;
+        				newdata.addRow([libName, Number(totalStaff),'#4444ff']);	//2007 year's values are blue
+        			}
+        			
+        		}
+        		var chartName = "TotalStaff";
+        		//call draw chart function which draws actual chart with options
+        		drawChart(newdata,chartName);
+} 
+
+function drawTotalIncomeChart(results)		//Processes total Income data and sends draw chart command
+{
+	var newdata = new google.visualization.DataTable();
+				
+  				newdata.addColumn('string', 'LibraryName');
+	      		newdata.addColumn('number', 'TotalIncome');
+	      		newdata.addColumn({type: 'string', role: 'style'});
+        		
+        		for(i=0,j=0;i<results.length;i++)
+        		{	
+        			var temp = results[i].LibraryName.value;	//temp Library name for filtering out libraries
+        			var tempStaff = parseInt(results[i].TotalStaff.value);	//totalStaff value to find out 2006 value
+        			var bookVol = results[i].BookVol.value;
+
+        			
+        			if(((temp == "WASHINGTON STATE LIBRARY")&&(tempStaff == 79)) || ((temp=="OKLAHOMA DEPARTMENT OF LIBRARIES")&&(tempStaff==82)) || ((temp=="STATE LIBRARY OF LOUISIANA")&&(tempStaff==75)) || ((temp=="ARKANSAS STATE LIBRARY")&&(tempStaff==56)) || ((temp=="KANSAS STATE LIBRARY")&&(tempStaff==29)) || ((temp=="UTAH STATE LIBRARY DIVISION")&&(tempStaff==65)) || ((temp=="COMMONWEALTH LIBRARIES")&&(tempStaff==83)) || ((temp=="NEW MEXICO STATE LIBRARY")&&(tempStaff==67)&&(bookVol==554673)) || ((temp=="CALIFORNIA STATE LIBRARY")&&(tempStaff==185)) || ((temp=="NEVADA STATE LIBRARY AND ARCHIVES")&&(tempStaff==40)))
+        			{
+        				var libName = temp;
+        				var totalIncome = results[i].TotalIncome.value;
+        				newdata.addRow([libName, Number(totalIncome),'#ff4444']);	//2006 year's values are red
+        			}
+        			else if((temp == "WASHINGTON STATE LIBRARY") || (temp=="OKLAHOMA DEPARTMENT OF LIBRARIES") || (temp=="STATE LIBRARY OF LOUISIANA") || (temp=="ARKANSAS STATE LIBRARY") || (temp=="KANSAS STATE LIBRARY") || (temp=="UTAH STATE LIBRARY DIVISION")|| (temp=="COMMONWEALTH LIBRARIES") || (temp=="NEW MEXICO STATE LIBRARY")|| (temp=="CALIFORNIA STATE LIBRARY") || (temp=="NEVADA STATE LIBRARY AND ARCHIVES"))
+        			{
+        				var libName = temp;
+        				var totalIncome = results[i].TotalIncome.value;
+        				newdata.addRow([libName, Number(totalIncome),'#4444ff']);	//2007 year's values are blue
+        			}
+        			
+        		}
+        		var chartName = "TotalIncome";
+        		//call draw chart function which draws actual chart with options
+        		drawChart(newdata,chartName);
+} 
+
+function drawTotalExpenseChart(results)		//Processes total Expense data and sends draw chart command
+{
+	var newdata = new google.visualization.DataTable();
+				
+  				newdata.addColumn('string', 'LibraryName');
+	      		newdata.addColumn('number', 'TotalExpense');
+	      		newdata.addColumn({type: 'string', role: 'style'});
+        		
+        		for(i=0,j=0;i<results.length;i++)
+        		{	
+        			var temp = results[i].LibraryName.value;	//temp Library name for filtering out libraries
+        			var tempStaff = parseInt(results[i].TotalStaff.value);	//totalStaff value to find out 2006 value
+        			var bookVol = results[i].BookVol.value;
+
+        			
+        			if(((temp == "WASHINGTON STATE LIBRARY")&&(tempStaff == 79)) || ((temp=="OKLAHOMA DEPARTMENT OF LIBRARIES")&&(tempStaff==82)) || ((temp=="STATE LIBRARY OF LOUISIANA")&&(tempStaff==75)) || ((temp=="ARKANSAS STATE LIBRARY")&&(tempStaff==56)) || ((temp=="KANSAS STATE LIBRARY")&&(tempStaff==29)) || ((temp=="UTAH STATE LIBRARY DIVISION")&&(tempStaff==65)) || ((temp=="COMMONWEALTH LIBRARIES")&&(tempStaff==83)) || ((temp=="NEW MEXICO STATE LIBRARY")&&(tempStaff==67)&&(bookVol==554673)) || ((temp=="CALIFORNIA STATE LIBRARY")&&(tempStaff==185)) || ((temp=="NEVADA STATE LIBRARY AND ARCHIVES")&&(tempStaff==40)))
+        			{
+        				var libName = temp;
+        				var totalExpense = results[i].TotalExpense.value;
+        				newdata.addRow([libName, Number(totalExpense),'#ff4444']);	//2006 year's values are red
+        			}
+        			else if((temp == "WASHINGTON STATE LIBRARY") || (temp=="OKLAHOMA DEPARTMENT OF LIBRARIES") || (temp=="STATE LIBRARY OF LOUISIANA") || (temp=="ARKANSAS STATE LIBRARY") || (temp=="KANSAS STATE LIBRARY") || (temp=="UTAH STATE LIBRARY DIVISION")|| (temp=="COMMONWEALTH LIBRARIES") || (temp=="NEW MEXICO STATE LIBRARY")|| (temp=="CALIFORNIA STATE LIBRARY") || (temp=="NEVADA STATE LIBRARY AND ARCHIVES"))
+        			{
+        				var libName = temp;
+        				var totalExpense = results[i].TotalExpense.value;
+        				newdata.addRow([libName, Number(totalExpense),'#4444ff']);	//2007 year's values are blue
+        			}
+        			
+        		}
+        		var chartName = "TotalExpense";
+        		//call draw chart function which draws actual chart with options
+        		drawChart(newdata,chartName);
+} 
+
+function drawChart(newdata,chartName)		//draws the chart based on the options set for that
+{
+	/*var options = {};
+				options['width'] = 1000;
+				options['sortColumn'] = 0;
+	// Create container and draw visualization
+	mytable= new google.visualization.Table(document.getElementById('visualization_Table'));
+    mytable.draw(newdata, options);	*/
+	//mychart= new google.charts.Bar(document.getElementById('visualization_Barchart_BookVolume'));
+       	    	if(chartName == "BookVolume")
+       	    	{
+       	    		var options = {
+          			title : 'ColumnChart showing BookVolume difference in year 2006-07', 
+          			titleTextStyle : {color:'green',fontSize : 20,fontName:'Georgia',italic:true},
+          			width : 1000,
+          			height : 500,
+          			legend : 'none',
+          			hAxis: {title: 'LibraryName', titleTextStyle: {color: 'green',fontName:'Georgia',fontSize:15},textStyle: {color:'brown'}},
+          			vAxis: {title: 'BookVolume', titleTextStyle: {color: 'green',fontName:'Georgia',fontSize:15},textStyle: {color: 'brown'}}
+          			};
+       	    		mychart= new google.visualization.ColumnChart(document.getElementById('visualization_Barchart_BookVolume'));
+       	    		mychart.draw(newdata, options);
+       	    	}
+       	    	else if(chartName == "TotalStaff")
+       	    	{
+       	    		var options = {
+          			title : "ColumnChart showing TotalStaff difference in year 2006-07",
+          			titleTextStyle : {color:'green',fontSize : 20,fontName:'Georgia',italic:true},
+          			width : 1000,
+          			height : 500,
+          			legend : 'none',
+          			hAxis: {title: 'LibraryName', titleTextStyle: {color: 'green',fontName:'Georgia',fontSize:15},textStyle: {color: 'brown'}},
+          			vAxis: {title: 'TotalStaff', titleTextStyle: {color: 'green',fontName:'Georgia',fontSize:15},textStyle: {color: 'brown'}}
+          			};
+       	    		mychart= new google.visualization.ColumnChart(document.getElementById('visualization_Barchart_TotalStaff'));
+       	    		mychart.draw(newdata, options);
+       	    	}
+       	    	else if(chartName == "TotalIncome")
+       	    	{
+       	    		var options = {
+          			title : "ColumnChart showing TotalIncome difference in year 2006-07",
+          			titleTextStyle : {color:'green',fontSize : 20,fontName:'Georgia',italic:true},
+          			width : 1000,
+          			height : 500,
+          			legend : 'none',
+          			hAxis: {title: 'LibraryName', titleTextStyle: {color: 'green',fontName:'Georgia',fontSize:15},textStyle: {color: 'brown'}},
+          			vAxis: {title: 'TotalIncome', titleTextStyle: {color: 'green',fontName:'Georgia',fontSize:15},textStyle: {color: 'brown'}}
+          			};
+       	    		mychart= new google.visualization.ColumnChart(document.getElementById('visualization_Barchart_TotalIncome'));
+       	    		mychart.draw(newdata, options);
+       	    	}
+       	    	else if(chartName == "TotalExpense")
+       	    	{
+       	    		var options = {
+          			title : "ColumnChart showing TotalExpense difference in year 2006-07",
+          			titleTextStyle : {color:'green',fontSize : 20,fontName:'Georgia',italic:true},
+          			width : 1000,
+          			height : 500,
+          			legend : 'none',
+          			hAxis: {title: 'LibraryName', titleTextStyle: {color: 'green',fontName:'Georgia',fontSize:15},textStyle: {color: 'brown'}},
+          			vAxis: {title: 'TotalExpense', titleTextStyle: {color: 'green',fontName:'Georgia',fontSize:15},textStyle: {color: 'brown'}}
+          			};
+       	    		mychart= new google.visualization.ColumnChart(document.getElementById('visualization_Barchart_TotalExpense'));
+       	    		mychart.draw(newdata, options);
+       	    	} 	    	
+       	    		
+}		
+	</script>
+
+	</head>
+
+	<body> <center>
+
+		
+<table width="990px" class="title">
+	<tr>
+	    <!-- title -->		
+		<td align="center" valign="baseline"><h3>State Library Statistical Analysis, 2006-07</h3></td>
+	</tr>
+</table>
+
+		
+<!-- Demo Content -->		
+<table cellspacing="25px">
+	<!--<tr>
+		<td style="background:#EEE">
+			<div id="visualization_Table"></div>
+		</td>
+	</tr>-->
+	<tr>
+		<th style="color:brown"> Red bar shows 2006 year's values, Blue bar shows 2007 year's value </th>
+	</tr>
+	<tr>	
+		<td style="background:#009999">
+			<div id="visualization_Barchart_BookVolume"></div>
+		</td>
+	</tr>
+	<tr>	
+		<td style="background:#009999">
+			<div id="visualization_Barchart_TotalStaff"></div>
+		</td>
+	</tr>
+	<tr>	
+		<td style="background:#009999">
+			<div id="visualization_Barchart_TotalIncome"></div>
+		</td>
+	</tr>
+	<tr>	
+		<td style="background:#009999">
+			<div id="visualization_Barchart_TotalExpense"></div>
+		</td>
+	</tr>
+</table>
+
+
+<!-- Demo Description -->		
+<table width="990px" class="pretty" font-size:"20px">
+<tr>
+	<td>Description</td>
+	<td>
+		This demo shows the differences between years 2006-07 for some libraries for some data like, Book Volume, Total Staff, Total Income, Total Expense. These data values are based on report from state library agency (StLA) for years 2006 and 2007.
+	</td>
+</tr>
+
+<tr>
+	<td>Creator</td>
+	<td>
+	  Utsav Dholakia(uxd150130),</br> 
+	  Neeharika Cheruku(nxc151230)
+	</td>
+</tr>
+
+<tr>
+	<td>Created</td>
+	<td>
+	  19/Nov/2015
+	</td>
+</tr>
+	
+<tr>
+	<td>Datasets</td>
+	<td>
+	  <div>
+	  	<a href='http://data-gov.tw.rpi.edu/wiki/Dataset_353'>Dataset 353</a>: <i>State Library Agency Survey: Fiscal Year 2006</i></br>
+	  	<a href='http://data-gov.tw.rpi.edu/wiki/Dataset_354'>Dataset 354</a>: <i>State Library Agency Survey: Fiscal Year 2007</i>
+	  </div>
+	</td>
+</tr>
+</table>
+
+</center></body>
+</html>
